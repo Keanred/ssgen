@@ -1,4 +1,4 @@
-from utils import text_node_to_html_node, split_nodes_delimiter
+from utils import text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link
 from textnode import TextNode, TextType
 import unittest
 
@@ -101,6 +101,117 @@ class TestTextNodeToHtmlNode(unittest.TestCase):
         self.assertEqual(html_node.value, "")
         self.assertEqual(html_node.props, {"src": "https://example.com/image.png", "alt": "alt text"})
 
+class TestExtractMarkdownImages(unittest.TestCase):
+    def test_extract_markdown_images(self):
+        """Test extracting markdown images from text"""
+        text = "Here is an image ![alt text](https://example.com/image.png) in the text."
+        from utils import extract_markdown_images
+        result = extract_markdown_images(text)
+        expected = [("alt text", "https://example.com/image.png")]
+        self.assertEqual(result, expected)
+    
+    def test_extract_markdown_images_multiple(self):
+        """Test extracting multiple markdown images from text"""
+        text = "Image one ![first](https://example.com/first.png) and image two ![second](https://example.com/second.png)."
+        from utils import extract_markdown_images
+        result = extract_markdown_images(text)
+        expected = [("first", "https://example.com/first.png"), ("second", "https://example.com/second.png")]
+        self.assertEqual(result, expected)
+    
+    def test_extract_markdown_images_none(self):
+        """Test extracting markdown images when there are none"""
+        text = "This text has no images."
+        from utils import extract_markdown_images
+        result = extract_markdown_images(text)
+        expected = []
+        self.assertEqual(result, expected)
+
+class TestExtractMarkdownLinks(unittest.TestCase):
+    def test_extract_markdown_links(self):
+        """Test extracting markdown links from text"""
+        text = "Here is a link [example](https://example.com) in the text."
+        from utils import extract_markdown_links
+        result = extract_markdown_links(text)
+        expected = [("example", "https://example.com")]
+        self.assertEqual(result, expected)
+    
+    def test_extract_markdown_links_multiple(self):
+        """Test extracting multiple markdown links from text"""
+        text = "Link one [first](https://example.com/first) and link two [second](https://example.com/second)."
+        from utils import extract_markdown_links
+        result = extract_markdown_links(text)
+        expected = [("first", "https://example.com/first"), ("second", "https://example.com/second")]
+        self.assertEqual(result, expected)
+    
+    def test_extract_markdown_links_none(self):
+        """Test extracting markdown links when there are none"""
+        text = "This text has no links."
+        from utils import extract_markdown_links
+        result = extract_markdown_links(text)
+        expected = []
+        self.assertEqual(result, expected)
+
+class TestSplitNodesImage(unittest.TestCase):
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+    
+    def test_split_images_no_images(self):
+        node = TextNode(
+            "This is text without any images.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text without any images.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+class TestSplitNodesLink(unittest.TestCase):
+    def test_split_links(self):
+        node = TextNode(
+            "This is text with a [link](https://example.com) and another [second link](https://example.org)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://example.com"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second link", TextType.LINK, "https://example.org"),
+            ],
+            new_nodes,
+        )
+    
+    def test_split_links_no_links(self):
+        node = TextNode(
+            "This is text without any links.",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text without any links.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
 
 if __name__ == "__main__":
     unittest.main()
