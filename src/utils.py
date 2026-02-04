@@ -102,3 +102,12 @@ def split_nodes_link(old_nodes):
             remaining_text = node.text[last_index:]
             new_nodes.append(TextNode(remaining_text, TextType.TEXT))
     return new_nodes
+
+def text_to_textnodes(text):
+    node_list = [TextNode(text, TextType.TEXT)]
+    node_list = split_nodes_delimiter(node_list, "**", TextType.TEXT)
+    node_list = split_nodes_delimiter(node_list, "_", TextType.TEXT)
+    node_list = split_nodes_delimiter(node_list, "`", TextType.TEXT)
+    node_list = split_nodes_image(node_list)
+    node_list = split_nodes_link(node_list)
+    return node_list

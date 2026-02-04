@@ -1,4 +1,4 @@
-from utils import text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link
+from utils import text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes
 from textnode import TextNode, TextType
 import unittest
 
@@ -211,6 +211,81 @@ class TestSplitNodesLink(unittest.TestCase):
                 TextNode("This is text without any links.", TextType.TEXT),
             ],
             new_nodes,
+        )
+
+class TestTextToTextNodes(unittest.TestCase):
+    def test_split_all_nodes(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            new_nodes
+        )
+
+    def test_text_to_textnodes_bold_only(self):
+        """Test conversion of markdown with only bold text"""
+        text = "This is **bold text** here"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("bold text", TextType.BOLD),
+                TextNode(" here", TextType.TEXT),
+            ],
+            new_nodes
+        )
+
+    def test_text_to_textnodes_multiple_formats(self):
+        """Test conversion of markdown with mixed formatting (bold, italic, code)"""
+        text = "This is **bold**, _italic_, and `code` text"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("bold", TextType.BOLD),
+                TextNode(", ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(", and ", TextType.TEXT),
+                TextNode("code", TextType.CODE),
+                TextNode(" text", TextType.TEXT),
+            ],
+            new_nodes
+        )
+
+    def test_text_to_textnodes_image_and_link(self):
+        """Test conversion of markdown with images and links"""
+        text = "Check out ![python](https://example.com/python.png) and [click here](https://example.com)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("Check out ", TextType.TEXT),
+                TextNode("python", TextType.IMAGE, "https://example.com/python.png"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("click here", TextType.LINK, "https://example.com"),
+            ],
+            new_nodes
+        )
+
+    def test_text_to_textnodes_plain_text_only(self):
+        """Test conversion of plain text with no markdown formatting"""
+        text = "This is just plain text with no formatting"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is just plain text with no formatting", TextType.TEXT),
+            ],
+            new_nodes
         )
 
 if __name__ == "__main__":
