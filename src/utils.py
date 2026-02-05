@@ -1,6 +1,7 @@
 import re
 from htmlnode import LeafNode
 from textnode import TextNode, TextType
+from functools import reduce
 
 def text_node_to_html_node(text_node):
     if text_node.text_type == TextType.TEXT:
