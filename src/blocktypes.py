@@ -2,6 +2,16 @@ from enum import Enum
 import re
 
 class BlockType(Enum):
+    """Enumeration of block-level markdown element types.
+    
+    Values:
+        PARAGRAPH: Regular paragraph text
+        HEADING: Heading (# to ######)
+        CODE: Code block (``` ... ```)
+        QUOTE: Block quote (> ...)
+        UNORDERED_LIST: Unordered list (- items)
+        ORDERED_LIST: Ordered list (1. 2. 3. items)
+    """
     PARAGRAPH = "paragraph"
     HEADING = "heading"
     CODE = "code"
@@ -10,7 +20,18 @@ class BlockType(Enum):
     ORDERED_LIST = "ordered_list"
 
 
-def markdown_to_blocks(markdown):
+def markdown_to_blocks(markdown: str) -> list[str]:
+    """Split markdown text into blocks separated by blank lines.
+    
+    Blocks are separated by double newlines. Leading/trailing whitespace
+    is stripped from each block.
+    
+    Args:
+        markdown: Raw markdown text.
+        
+    Returns:
+        list[str]: List of markdown blocks, each as a string.
+    """
     split_markdown = markdown.split("\n\n")
     stripped_markdown = list(map(str.strip, split_markdown))
     for block in stripped_markdown:
@@ -19,15 +40,27 @@ def markdown_to_blocks(markdown):
     return stripped_markdown
    
 def block_to_block_type(block):
-    if re.match(r"^#{1,6}\s+", block):
+    lines = block.split("\n")
+
+    if block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
         return BlockType.HEADING
-    elif re.match(r"^```[\r\n]+[\s\S]*?[\r\n]+```$", block, re.DOTALL):
+    if len(lines) > 1 and lines[0].strip().startswith("```") and lines[-1].strip().startswith("```"):
         return BlockType.CODE
-    elif re.match(r"^(?:>\s?.+(?:\r?\n|$))+", block, re.MULTILINE):
+    if block.startswith(">"):
+        for line in lines:
+            if not line.lstrip().startswith(">"):
+                return BlockType.PARAGRAPH
         return BlockType.QUOTE
-    elif re.match(r"^(?:-\s.+(?:\r?\n|$))+", block, re.MULTILINE):
+    if block.startswith("- "):
+        for line in lines:
+            if not line.lstrip().startswith("- "):
+                return BlockType.PARAGRAPH
         return BlockType.UNORDERED_LIST
-    elif re.match(r"^(?:\d+\.\s.+(?:\r?\n|$))+", block, re.MULTILINE):
+    if block.startswith("1. "):
+        i = 1
+        for line in lines:
+            if not line.lstrip().startswith(f"{i}. "):
+                return BlockType.PARAGRAPH
+            i += 1
         return BlockType.ORDERED_LIST
-    else:
-        return BlockType.PARAGRAPH
+    return BlockType.PARAGRAPH
