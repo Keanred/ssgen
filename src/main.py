@@ -4,9 +4,9 @@ from files import copy_static_files
 from markdownhtml import extract_title, markdown_to_html_node
 
 
-def main(argv=None):
-    basepath = argv[1] if argv and len(argv) > 1 else "/"
-
+def main():
+    basepath = sys.argv[1] if sys.argv and len(sys.argv) > 0 else "/"
+    print(f"Using basepath: {basepath}")
     copy_static_files()
     generate_page_recursive("content", "template.html", "docs", basepath)
 
@@ -27,8 +27,8 @@ def generate_page(
     page_title = extract_title(content)
     final_html = template.replace("{{ Title }}", page_title if page_title else "")
     final_html = final_html.replace("{{ Content }}", html_nodes.to_html())
-    final_html = final_html.replace("href=/", f"href={basepath}")
-    final_html = final_html.replace("src=/", f"src={basepath}")
+    final_html = final_html.replace('href="/', f'href="{basepath}')
+    final_html = final_html.replace('src="/', f'src="{basepath}')
     dirname = os.path.dirname(dest_path)
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
