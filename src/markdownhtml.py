@@ -108,3 +108,22 @@ def markdown_to_html_node(markdown: str) -> ParentNode:
                     list_items.append(ParentNode("li", children=item_nodes, props=None))
                 child_nodes.append(ParentNode("ol", children=list_items, props=None))
     return ParentNode("div", children=child_nodes, props=None)
+
+
+def extract_title(markdown):
+    """Extract the title from markdown text.
+
+    The title is defined as the first line that starts with a heading marker (#).
+    If no such line exists, raises a ValueError.
+
+    Args:
+        markdown: Raw markdown text to extract the title from.
+
+    Returns:
+        str | ValueError: The extracted title text, or ValueError if no title is found.
+    """
+    lines = markdown.split("\n")
+    for line in lines:
+        if line.startswith("# "):
+            return line[2:].strip()
+    raise ValueError("no title found")
