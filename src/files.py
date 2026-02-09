@@ -1,6 +1,6 @@
 import os
 
-TARGET_DIR = "public"
+TARGET_DIR = "docs"
 SOURCE_DIR = "static"
 
 
